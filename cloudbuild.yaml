@@ -1,0 +1,28 @@
+steps:
+#  step1 :  Clone git repository
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://source.developers.google.com/p/devops-learning-425307/r/test-repo']
+
+# step2 : Docker build
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/${_PROJECT_ID}/${_CINAME}:${_VERSION}','.']
+
+# step 3: Docker push
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/${_PROJECT_ID}/${_CINAME}:${_VERSION}']
+
+# step 4: Set Kubernetes deployment image
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: 
+  - 'set'
+  - 'image'
+  - 'deployment/my-app'
+  - 'nginx-1=gcr.io/${PROJECT_ID}/${_CINAME}:${_VERSION}'
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=demo-cluster'
+
+substitutions:
+  _PROJECT_ID : devops-learning-425307
+  _CINAME : gke-image
+  _VERSION: v3.0
